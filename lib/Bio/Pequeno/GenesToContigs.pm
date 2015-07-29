@@ -10,6 +10,7 @@ Given a GFF file and a list of IDs extract contigs names
 
 use Moose;
 use Bio::Tools::GFF;
+use File::Basename;
 
 has 'gff_file' => ( is => 'ro', isa => 'Str',      required => 1 );
 has 'gene_ids' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
@@ -18,9 +19,9 @@ has 'genes_to_feature' => ( is => 'ro', isa => 'HashRef', default => sub { {} } 
 has 'genes_to_product' => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
 has '_sequences' => ( is => 'rw', isa => 'ArrayRef' );
 
-has 'output_filename' => ( is => 'ro', isa => 'Str', default => 'novel_sequences.fa' );
+has 'output_filename' => ( is => 'ro', isa => 'Str',  lazy => 1, builder => '_build_output_filename' );
 
-has 'max_gap_between_genes' => ( is => 'ro', isa => 'Int', default => 20 );
+has 'max_gap_between_genes' => ( is => 'ro', isa => 'Int', default => 40 );
 has 'min_genes_on_contig'   => ( is => 'ro', isa => 'Int', default => 2 );
 
 has 'sequence_ids_to_genes' => ( is => 'ro', isa => 'HashRef', lazy => 1, builder => '_build_sequence_ids_to_genes' );
@@ -29,6 +30,14 @@ has '_blocks_to_sequences'  => ( is => 'ro', isa => 'HashRef', lazy => 1, builde
 #loop over file to link gene_ids to sequenc_ids
 #loop again - store all annonotation for a contig, flag which genes are unclassified
 #add the sequence to a contig
+
+
+sub _build_output_filename
+{
+    my ($self) = @_;
+    my ( $filename, $directories, $suffix ) = fileparse( $self->gff_file, qr/\.[^.]*/ );
+    return $filename . '.novel.fa';
+}
 
 sub print_gene_products_on_contigs {
     my ($self) = @_;
