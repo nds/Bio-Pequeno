@@ -14,6 +14,7 @@ use Getopt::Long qw(GetOptionsFromArray);
 use Bio::Tools::GFF;
 use Bio::Pequeno::CodingRegions;
 use Bio::Pequeno::KrakenUnclassifiedRegions;
+use Bio::Pequeno::GenesToContigs;
 
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
@@ -59,13 +60,15 @@ sub run {
 		cpus => $self->cpus, 
 		kraken_db => $self->kraken_db, 
 		minimum_gene_id_threshold => $self->minimum_gene_id_threshold );
-		$unclassified_genes_obj->unclassified_gene_ids;
 		
-		lookup table linking sequence id to gene id
-		pull out sequence from gff
-		save sequence to fasta
-		extract annotation thats not hypo
-		blast coding regions against nt
+		my $genes_to_contigs_obj = Bio::Pequeno::GenesToContigs->new(gff_file => $file, gene_ids => $unclassified_genes_obj->unclassified_gene_ids);
+		$genes_to_contigs_obj->sequence_ids_to_genes;
+		
+		#lookup table linking sequence id to gene id
+		#pull out sequence from gff
+		#save sequence to fasta
+		#extract annotation thats not hypo
+		#blast coding regions against nt
 	}
     
 }

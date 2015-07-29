@@ -17,12 +17,9 @@ has 'gene_ids'  => ( is => 'ro', isa => 'ArrayRef',  required => 1 );
 has 'sequence_ids_to_genes' => ( is => 'ro', isa => 'HashRef', lazy => 1, builder => '_build_sequence_ids_to_genes' );
 has 'contigs' => ( is => 'ro', isa => 'HashRef', lazy => 1, builder => '' );
 
-#
 #loop over file to link gene_ids to sequenc_ids
 #loop again - store all annonotation for a contig, flag which genes are unclassified
 #add the sequence to a contig
-
-
 
 sub _build_sequence_ids_to_genes
 {
