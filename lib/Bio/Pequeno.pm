@@ -26,6 +26,7 @@ has 'kraken_db'                 => ( is => 'rw', isa => 'Str', default => "/lust
 has 'cpus'                      => ( is => 'rw', isa => 'Int', default => 1 );
 has 'minimum_gene_id_threshold' => ( is => 'rw', isa => 'Int', default => 3 );
 
+has 'b' => ( is => 'rw', isa => 'Int', default => 3 );
 sub BUILD {
     my ($self) = @_;
 
@@ -58,6 +59,7 @@ sub run {
             kraken_db                 => $self->kraken_db,
             minimum_gene_id_threshold => $self->minimum_gene_id_threshold
         );
+		next unless(defined($unclassified_genes_obj->unclassified_gene_ids));
 
         my $genes_to_contigs_obj =
           Bio::Pequeno::GenesToContigs->new( gff_file => $file, gene_ids => $unclassified_genes_obj->unclassified_gene_ids );
