@@ -55,10 +55,13 @@ sub extract_nuc_sequences_from_blocks
 
 		for my $blocks (@{$self->_blocks_to_sequences->{$seq_obj->display_id}})
 		{
-			my $start_coord = $self->genes_to_feature->{ $blocks->[0] }->start();
-			my $end_coord = $self->genes_to_feature->{ $blocks->[1] }->end();
+			my $start_coord = $self->genes_to_feature->{ $blocks->[0] }->start;
+			my $end_coord = $self->genes_to_feature->{ $blocks->[0] }->end;
 			
-			my $sample_name = join('_X_',($self->gff_file,$seq_obj->display_id,$start_coord,$end_coord));
+			$start_coord = $self->genes_to_feature->{ $blocks->[1] }->start if($self->genes_to_feature->{ $blocks->[1] }->start < $start_coord);
+			$end_coord = $self->genes_to_feature->{ $blocks->[1] }->end if($self->genes_to_feature->{ $blocks->[1] }->end > $end_coord);
+			
+			my $sample_name = join('___',($self->gff_file,$seq_obj->display_id,$start_coord,$end_coord));
 			$sample_name =~ s!\W!_!gi;
 			$out_seq_io->write_seq( Bio::Seq->new( -display_id => $sample_name, -seq => $seq_obj->subseq($start_coord,$end_coord) ) );
 		}

@@ -1,4 +1,4 @@
-undef $VERSION;
+aundef $VERSION;
 
 package Bio::Pequeno;
 
@@ -63,8 +63,7 @@ sub run {
           Bio::Pequeno::GenesToContigs->new( gff_file => $file, gene_ids => $unclassified_genes_obj->unclassified_gene_ids );
 		$genes_to_contigs_obj->print_gene_products_on_contigs;
 		$genes_to_contigs_obj->extract_nuc_sequences_from_blocks;
-
-        #extract annotation thats not hypo
+		
         #blast coding regions against nt
     }
 
