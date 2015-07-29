@@ -61,12 +61,9 @@ sub run {
 
         my $genes_to_contigs_obj =
           Bio::Pequeno::GenesToContigs->new( gff_file => $file, gene_ids => $unclassified_genes_obj->unclassified_gene_ids );
-        $genes_to_contigs_obj->_blocks_to_sequences;
 		$genes_to_contigs_obj->print_gene_products_on_contigs;
+		$genes_to_contigs_obj->extract_nuc_sequences_from_blocks;
 
-        #lookup table linking sequence id to gene id
-        #pull out sequence from gff
-        #save sequence to fasta
         #extract annotation thats not hypo
         #blast coding regions against nt
     }

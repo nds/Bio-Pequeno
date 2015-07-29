@@ -53,6 +53,9 @@ sub _create_bed_file_from_gff {
 
         #filter out small genes
         next if ( ( $feature->end - $feature->start ) < $self->min_gene_size_in_nucleotides );
+		
+        #filter genes with a gene name because they have been identified
+	    next if ( $feature->has_tag('gene') );
 
         my $strand = ( $feature->strand > 0 ) ? '+' : '-';
         print {$bed_fh} join( "\t", ( $feature->seq_id, $feature->start - 1, $feature->end, $gene_id, 1, $strand ) ) . "\n";

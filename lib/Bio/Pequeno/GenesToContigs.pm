@@ -14,9 +14,11 @@ use Bio::Tools::GFF;
 has 'gff_file' => ( is => 'ro', isa => 'Str',      required => 1 );
 has 'gene_ids' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 
-has 'gene_to_feature' => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
+has 'genes_to_feature' => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
 has 'genes_to_product' => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
-has '_sequences' => ( is => 'rw', isa => 'Maybe[HashRef]' );
+has '_sequences' => ( is => 'rw', isa => 'ArrayRef' );
+
+has 'output_filename' => ( is => 'ro', isa => 'Str', default => 'novel_sequences.fa' );
 
 has 'max_gap_between_genes' => ( is => 'ro', isa => 'Int', default => 20 );
 has 'min_genes_on_contig'   => ( is => 'ro', isa => 'Int', default => 2 );
@@ -34,12 +36,36 @@ sub print_gene_products_on_contigs {
     for my $seq_id ( keys %{ $self->sequence_ids_to_genes } ) {
 		for my $gene (@{$self->sequence_ids_to_genes->{$seq_id}})
 		{
-			print $seq_id."\t".$gene."\t".$genes_to_contigs_obj->genes_to_product->{$gene}."\n";
+			print $self->gff_file."\t".$seq_id."\t".$gene."\t".$self->genes_to_product->{$gene}."\n";
 		}
 		print "\n";
     }
 }
 
+sub extract_nuc_sequences_from_blocks
+{
+	my ($self) = @_;
+	$self->_blocks_to_sequences;
+	
+	my $out_seq_io = Bio::SeqIO->new( -file => ">" . $self->output_filename, -format => 'Fasta' );
+	
+	for my $seq_obj (@{$self->_sequences})
+	{
+		next unless(defined($self->_blocks_to_sequences->{$seq_obj->display_id}));
+
+		for my $blocks (@{$self->_blocks_to_sequences->{$seq_obj->display_id}})
+		{
+			my $start_coord = $self->genes_to_feature->{ $blocks->[0] }->start();
+			my $end_coord = $self->genes_to_feature->{ $blocks->[1] }->end();
+			
+			my $sample_name = join('_X_',($self->gff_file,$seq_obj->display_id,$start_coord,$end_coord));
+			$sample_name =~ s!\W!_!gi;
+			$out_seq_io->write_seq( Bio::Seq->new( -display_id => $sample_name, -seq => $seq_obj->subseq($start_coord,$end_coord) ) );
+		}
+
+	}
+	return 1;
+}
 
 sub _build__blocks_to_sequences {
     my ($self) = @_;
@@ -68,7 +94,7 @@ sub _build__blocks_to_sequences {
                 }
                 else {
                     my @current_block = ( $smallest_gene, $largest_gene );
-                    push( @{$blocks->{$seq_id}}, \@current_block );
+                    push( @{$blocks{$seq_id}}, \@current_block );
 
                     # new block
                     $smallest_gene        = undef;
@@ -81,7 +107,7 @@ sub _build__blocks_to_sequences {
         }
         if ( defined($largest_gene) && defined($smallest_gene) ) {
             my @current_block = ( $smallest_gene, $largest_gene );
-            push( @{$blocks->{$seq_id}}, \@current_block );
+            push( @{$blocks{$seq_id}}, \@current_block );
         }
 
     }
@@ -100,7 +126,7 @@ sub _build_sequence_ids_to_genes {
         for my $unclassified_gene_id ( @{ $self->gene_ids } ) {
             if ( $gene_id eq $unclassified_gene_id ) {
                 push( @{ $seq_ids_to_genes{ $feature->seq_id } }, $gene_id );
-				$self->gene_to_feature->{$gene_id} = $feature;
+				$self->genes_to_feature->{$gene_id} = $feature;
 
                 if ( $feature->has_tag('product') ) {
                     my ( $product, @junk ) = $feature->get_tag_values('product');
@@ -112,8 +138,8 @@ sub _build_sequence_ids_to_genes {
             }
         }
     }
-	
-	$self->_sequences($gffio->get_seqs());
+	my @seq_objects = $gffio->get_seqs();
+	$self->_sequences(\@seq_objects);
 	
     return \%seq_ids_to_genes;
 }
