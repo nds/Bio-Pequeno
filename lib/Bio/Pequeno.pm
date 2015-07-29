@@ -62,7 +62,7 @@ sub run {
 		minimum_gene_id_threshold => $self->minimum_gene_id_threshold );
 		
 		my $genes_to_contigs_obj = Bio::Pequeno::GenesToContigs->new(gff_file => $file, gene_ids => $unclassified_genes_obj->unclassified_gene_ids);
-		$genes_to_contigs_obj->sequence_ids_to_genes;
+		$genes_to_contigs_obj->calculate_blocks;
 		
 		#lookup table linking sequence id to gene id
 		#pull out sequence from gff
