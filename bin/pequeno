@@ -1,0 +1,18 @@
+#!/usr/bin/env perl
+
+package Bio::Pequeno::Main::Pequeno;
+
+# ABSTRACT: Find small novel sequences
+# PODNAME:  pequeno
+
+=head1 SYNOPSIS
+
+Find small novel sequences
+
+=cut
+
+BEGIN { unshift( @INC, '../lib' ) }
+BEGIN { unshift( @INC, './lib' ) }
+use Bio::Pequeno;
+
+Bio::Pequeno->new(args => \@ARGV, script_name => $0)->run;
