@@ -1,4 +1,4 @@
-aundef $VERSION;
+undef $VERSION;
 
 package Bio::Pequeno;
 

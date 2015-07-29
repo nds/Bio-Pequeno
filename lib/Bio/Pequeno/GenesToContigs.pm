@@ -55,6 +55,7 @@ sub extract_nuc_sequences_from_blocks
 
 		for my $blocks (@{$self->_blocks_to_sequences->{$seq_obj->display_id}})
 		{
+			next unless(defined($blocks->[0]) && defined($blocks->[1]) );
 			my $start_coord = $self->genes_to_feature->{ $blocks->[0] }->start;
 			my $end_coord = $self->genes_to_feature->{ $blocks->[0] }->end;
 			
