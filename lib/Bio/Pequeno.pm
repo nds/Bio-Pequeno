@@ -67,6 +67,8 @@ sub run {
 		$genes_to_contigs_obj->extract_nuc_sequences_from_blocks;
 		
         #blast coding regions against nt
+		#bsub.py 30 phage blastn -db /data/blastdb/Supported/NT/nt -evalue 0.00001 -num_threads 1 -outfmt 6 -query phage.fa
+		#/data/blastdb/Supported/EMBL/current/wgs
     }
 
 }

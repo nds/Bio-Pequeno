@@ -13,9 +13,9 @@ BEGIN {
 }
 
 my $obj;
-ok($obj = Bio::Pequeno::CodingRegions->new(gff_file => 't/data/query_1.gff'), 'initialise obj');
-is($obj->fasta_file,'query_1.fa', 'fasta file created');
-ok(-e $obj->fasta_file, 'fasta file created');
+ok( $obj = Bio::Pequeno::CodingRegions->new( gff_file => 't/data/query_1.gff' ), 'initialise obj' );
+is( $obj->fasta_file, 'query_1.fa', 'fasta file created' );
+ok( -e $obj->fasta_file, 'fasta file created' );
 
 compare_ok( 'query_1.fa', 't/data/expected_query_1.fa', 'extracted nuc sequences as expected' );
 

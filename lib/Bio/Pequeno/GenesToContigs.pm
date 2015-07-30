@@ -10,30 +10,22 @@ Given a GFF file and a list of IDs extract contigs names
 
 use Moose;
 use Bio::Tools::GFF;
+use Bio::SeqIO;
 use File::Basename;
 
-has 'gff_file' => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'gene_ids' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-
-has 'genes_to_feature' => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
-has 'genes_to_product' => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
+has 'gff_file'         => ( is => 'ro', isa => 'Str',      required => 1 );
+has 'gene_ids'         => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'genes_to_feature' => ( is => 'ro', isa => 'HashRef',  default  => sub { {} } );
+has 'genes_to_product' => ( is => 'ro', isa => 'HashRef',  default  => sub { {} } );
 has '_sequences' => ( is => 'rw', isa => 'ArrayRef' );
+has 'output_filename' => ( is => 'ro', isa => 'Str', lazy => 1, builder => '_build_output_filename' );
+has 'max_gap_between_genes'            => ( is => 'ro', isa => 'Int',     default => 40 );
+has 'min_genes_on_contig'              => ( is => 'ro', isa => 'Int',     default => 2 );
+has '_percentage_to_take_whole_contig' => ( is => 'ro', isa => 'Num',     default => 0.5 );
+has 'sequence_ids_to_genes'            => ( is => 'ro', isa => 'HashRef', lazy    => 1, builder => '_build_sequence_ids_to_genes' );
+has '_blocks_to_sequences'             => ( is => 'ro', isa => 'HashRef', lazy    => 1, builder => '_build__blocks_to_sequences' );
 
-has 'output_filename' => ( is => 'ro', isa => 'Str',  lazy => 1, builder => '_build_output_filename' );
-
-has 'max_gap_between_genes' => ( is => 'ro', isa => 'Int', default => 40 );
-has 'min_genes_on_contig'   => ( is => 'ro', isa => 'Int', default => 2 );
-
-has 'sequence_ids_to_genes' => ( is => 'ro', isa => 'HashRef', lazy => 1, builder => '_build_sequence_ids_to_genes' );
-has '_blocks_to_sequences'  => ( is => 'ro', isa => 'HashRef', lazy => 1, builder => '_build__blocks_to_sequences' );
-
-#loop over file to link gene_ids to sequenc_ids
-#loop again - store all annonotation for a contig, flag which genes are unclassified
-#add the sequence to a contig
-
-
-sub _build_output_filename
-{
+sub _build_output_filename {
     my ($self) = @_;
     my ( $filename, $directories, $suffix ) = fileparse( $self->gff_file, qr/\.[^.]*/ );
     return $filename . '.novel.fa';
@@ -43,41 +35,45 @@ sub print_gene_products_on_contigs {
     my ($self) = @_;
 
     for my $seq_id ( keys %{ $self->sequence_ids_to_genes } ) {
-		for my $gene (@{$self->sequence_ids_to_genes->{$seq_id}})
-		{
-			print $self->gff_file."\t".$seq_id."\t".$gene."\t".$self->genes_to_product->{$gene}."\n";
-		}
-		print "\n";
+        for my $gene ( @{ $self->sequence_ids_to_genes->{$seq_id} } ) {
+            print $self->gff_file . "\t" . $seq_id . "\t" . $gene . "\t" . $self->genes_to_product->{$gene} . "\n";
+        }
+        print "\n";
     }
 }
 
-sub extract_nuc_sequences_from_blocks
-{
-	my ($self) = @_;
-	$self->_blocks_to_sequences;
-	
-	my $out_seq_io = Bio::SeqIO->new( -file => ">" . $self->output_filename, -format => 'Fasta' );
-	
-	for my $seq_obj (@{$self->_sequences})
-	{
-		next unless(defined($self->_blocks_to_sequences->{$seq_obj->display_id}));
+sub extract_nuc_sequences_from_blocks {
+    my ($self) = @_;
+    $self->_blocks_to_sequences;
 
-		for my $blocks (@{$self->_blocks_to_sequences->{$seq_obj->display_id}})
-		{
-			next unless(defined($blocks->[0]) && defined($blocks->[1]) );
-			my $start_coord = $self->genes_to_feature->{ $blocks->[0] }->start;
-			my $end_coord = $self->genes_to_feature->{ $blocks->[0] }->end;
-			
-			$start_coord = $self->genes_to_feature->{ $blocks->[1] }->start if($self->genes_to_feature->{ $blocks->[1] }->start < $start_coord);
-			$end_coord = $self->genes_to_feature->{ $blocks->[1] }->end if($self->genes_to_feature->{ $blocks->[1] }->end > $end_coord);
-			
-			my $sample_name = join('___',($self->gff_file,$seq_obj->display_id,$start_coord,$end_coord));
-			$sample_name =~ s!\W!_!gi;
-			$out_seq_io->write_seq( Bio::Seq->new( -display_id => $sample_name, -seq => $seq_obj->subseq($start_coord,$end_coord) ) );
-		}
+    my $out_seq_io = Bio::SeqIO->new( -file => ">" . $self->output_filename, -format => 'Fasta' );
+    my ( $sample_name, $directories, $suffix ) = fileparse( $self->gff_file, qr/\.[^.]*/ );
 
-	}
-	return 1;
+    for my $seq_obj ( @{ $self->_sequences } ) {
+        next unless ( defined( $self->_blocks_to_sequences->{ $seq_obj->display_id } ) );
+
+        for my $blocks ( @{ $self->_blocks_to_sequences->{ $seq_obj->display_id } } ) {
+            next unless ( defined( $blocks->[0] ) && defined( $blocks->[1] ) );
+            my $start_coord = $self->genes_to_feature->{ $blocks->[0] }->start;
+            my $end_coord   = $self->genes_to_feature->{ $blocks->[0] }->end;
+
+            $start_coord = $self->genes_to_feature->{ $blocks->[1] }->start
+              if ( $self->genes_to_feature->{ $blocks->[1] }->start < $start_coord );
+            $end_coord = $self->genes_to_feature->{ $blocks->[1] }->end if ( $self->genes_to_feature->{ $blocks->[1] }->end > $end_coord );
+
+            # If the block makes up a big percentage of the contig, then just take the whole thing
+            if ( ( $end_coord - $start_coord ) / $seq_obj->length > $self->_percentage_to_take_whole_contig ) {
+                $start_coord = 1;
+                $end_coord   = $seq_obj->length;
+            }
+
+            my $sample_name = join( '___', ( $sample_name, $seq_obj->display_id, $start_coord, $end_coord ) );
+            $sample_name =~ s!\W!_!gi;
+            $out_seq_io->write_seq( Bio::Seq->new( -display_id => $sample_name, -seq => $seq_obj->subseq( $start_coord, $end_coord ) ) );
+        }
+
+    }
+    return 1;
 }
 
 sub _build__blocks_to_sequences {
@@ -107,7 +103,7 @@ sub _build__blocks_to_sequences {
                 }
                 else {
                     my @current_block = ( $smallest_gene, $largest_gene );
-                    push( @{$blocks{$seq_id}}, \@current_block );
+                    push( @{ $blocks{$seq_id} }, \@current_block );
 
                     # new block
                     $smallest_gene        = undef;
@@ -120,7 +116,7 @@ sub _build__blocks_to_sequences {
         }
         if ( defined($largest_gene) && defined($smallest_gene) ) {
             my @current_block = ( $smallest_gene, $largest_gene );
-            push( @{$blocks{$seq_id}}, \@current_block );
+            push( @{ $blocks{$seq_id} }, \@current_block );
         }
 
     }
@@ -139,7 +135,7 @@ sub _build_sequence_ids_to_genes {
         for my $unclassified_gene_id ( @{ $self->gene_ids } ) {
             if ( $gene_id eq $unclassified_gene_id ) {
                 push( @{ $seq_ids_to_genes{ $feature->seq_id } }, $gene_id );
-				$self->genes_to_feature->{$gene_id} = $feature;
+                $self->genes_to_feature->{$gene_id} = $feature;
 
                 if ( $feature->has_tag('product') ) {
                     my ( $product, @junk ) = $feature->get_tag_values('product');
@@ -151,9 +147,9 @@ sub _build_sequence_ids_to_genes {
             }
         }
     }
-	my @seq_objects = $gffio->get_seqs();
-	$self->_sequences(\@seq_objects);
-	
+    my @seq_objects = $gffio->get_seqs();
+    $self->_sequences( \@seq_objects );
+
     return \%seq_ids_to_genes;
 }
 
