@@ -14,8 +14,7 @@ BEGIN {
 
 my $obj;
 ok(
-    $obj = Bio::Pequeno::KrakenUnclassifiedRegions->new( fasta_file => 't/data/query_1.fa', kraken_db => 't/data/kraken_test/' ),
-    minimum_gene_id_threshold => 1,
+    $obj = Bio::Pequeno::KrakenUnclassifiedRegions->new( fasta_file => 't/data/query_1.fa', kraken_db => 't/data/kraken_test/',minimum_gene_id_threshold => 1),
     'initialise obj'
 );
 
