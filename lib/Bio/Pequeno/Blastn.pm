@@ -23,8 +23,9 @@ has 'perc_identity'   => ( is => 'ro', isa => 'Num',      default  => 70 );
 has 'max_target_seqs' => ( is => 'ro', isa => 'Int',      default  => 2000 );
 has 'outfmt'          => ( is => 'ro', isa => 'Int',      default  => 6 );
 has 'blast_results'   => ( is => 'ro', isa => 'ArrayRef', lazy     => 1, builder => '_build_blast_results' );
+has '_blast_command'  => ( is => 'ro', isa => 'Str',      lazy     => 1, builder => '_build__blast_command' );
 
-sub _blast_command {
+sub _build__blast_command {
     my ($self) = @_;
     return join(
         ' ',
