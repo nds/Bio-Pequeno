@@ -18,8 +18,7 @@ use Bio::Pequeno::KrakenUnclassifiedRegions;
 use Bio::Pequeno::GenesToContigs;
 use Bio::Pequeno::Blastn;
 use Bio::Pequeno::ParseBlastResults;
-
-use Data::Dumper;
+use Bio::Pequeno::ExtractSequencesToFasta;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -75,12 +74,19 @@ sub run {
         my $blastn_obj = Bio::Pequeno::Blastn->new(
             fasta_file     => $genes_to_contigs_obj->output_filename,
             blast_database => $self->blast_database,
-            cpus           => $self->cpus,  
+            cpus           => $self->cpus,
         );
-		next unless defined($blastn_obj->blast_results);
-		my $parse_blast_obj = Bio::Pequeno::ParseBlastResults->new(blast_results => $blastn_obj->blast_results, fasta_file => $genes_to_contigs_obj->output_filename);
-		print Dumper $parse_blast_obj->sequence_calculate_coverage;
+        next unless defined( $blastn_obj->blast_results );
+        my $parse_blast_obj = Bio::Pequeno::ParseBlastResults->new(
+            blast_results => $blastn_obj->blast_results,
+            fasta_file    => $genes_to_contigs_obj->output_filename
+        );
 
+        my $extract_sequences = Bio::Pequeno::ExtractSequencesToFasta->new(
+            fasta_file   => $genes_to_contigs_obj->output_filename,
+            sequence_ids => $parse_blast_obj->sequence_calculate_coverage
+        );
+        $extract_sequences->extract_sequence_ids_to_file;
     }
 
 }
