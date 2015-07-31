@@ -46,13 +46,22 @@ calculate_coverage(
     }
 );
 
+
+calculate_coverage(
+    't/data/35377_B02_7.novel.fa',
+    't/data/35377_B02_7.blast_results',
+    {
+        '35377_B02_7___ERS625279_SC_contig000007___26558___39848' => '0.908885712136032'
+    }
+);
+
 done_testing();
 
 sub calculate_coverage {
     my ( $fasta_file, $blast_results, $expected_coverage ) = @_;
 
     ok( my $blast_obj = Bio::Pequeno::Blastn->new( fasta_file => $fasta_file, _blast_command => "cat $blast_results" ) );
-    ok( my $obj = Bio::Pequeno::ParseBlastResults->new( fasta_file => $fasta_file, blast_results => $blast_obj->blast_results ),
+    ok( my $obj = Bio::Pequeno::ParseBlastResults->new( fasta_file => $fasta_file, blast_results => $blast_obj->blast_results, max_percentage_coverage => 0.91 ),
         'initialise obj' );
     is_deeply( $obj->sequence_calculate_coverage, $expected_coverage, 'sequence coverage' );
 }

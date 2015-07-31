@@ -20,7 +20,7 @@ has 'genes_to_product' => ( is => 'ro', isa => 'HashRef',  default  => sub { {} 
 has '_sequences' => ( is => 'rw', isa => 'ArrayRef' );
 has 'output_filename' => ( is => 'ro', isa => 'Str', lazy => 1, builder => '_build_output_filename' );
 has 'max_gap_between_genes'            => ( is => 'ro', isa => 'Int',     default => 20 );
-has 'min_genes_on_contig'              => ( is => 'ro', isa => 'Int',     default => 6 );
+has 'min_genes_on_contig'              => ( is => 'ro', isa => 'Int',     default => 5 );
 has '_percentage_to_take_whole_contig' => ( is => 'ro', isa => 'Num',     default => 0.7 );
 has 'min_sequence_length'              => ( is => 'ro', isa => 'Int',     default => 5000 ); #Phix 5386
 has 'max_sequence_length'              => ( is => 'ro', isa => 'Int',     default => 1800000 );

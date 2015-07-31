@@ -44,12 +44,12 @@ sub sequence_calculate_coverage
 				$sequence_coverage[$i-1] = 1;
 			}
 		}
-
+		
 		# count the number of 1's.		
 		my $sum = 0;
 		for(my $i = 0; $i< @sequence_coverage ; $i++)
 		{
-			$sum += $sequence_coverage[$i];
+			$sum += $sequence_coverage[$i] if(defined($sequence_coverage[$i]));
 		}
 		
 		my $coverage = $sum/$sequence_length;
