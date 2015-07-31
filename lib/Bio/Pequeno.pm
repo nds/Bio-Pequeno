@@ -75,14 +75,12 @@ sub run {
         my $blastn_obj = Bio::Pequeno::Blastn->new(
             fasta_file     => $genes_to_contigs_obj->output_filename,
             blast_database => $self->blast_database,
-            cpus           => $self->cpus,
-			fasta_file     
+            cpus           => $self->cpus,  
         );
 		next unless defined($blastn_obj->blast_results);
 		my $parse_blast_obj = Bio::Pequeno::ParseBlastResults->new(blast_results => $blastn_obj->blast_results, fasta_file => $genes_to_contigs_obj->output_filename);
 		print Dumper $parse_blast_obj->sequence_calculate_coverage;
-		
-		
+
     }
 
 }
