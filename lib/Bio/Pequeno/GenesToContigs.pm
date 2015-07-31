@@ -19,9 +19,11 @@ has 'genes_to_feature' => ( is => 'ro', isa => 'HashRef',  default  => sub { {} 
 has 'genes_to_product' => ( is => 'ro', isa => 'HashRef',  default  => sub { {} } );
 has '_sequences' => ( is => 'rw', isa => 'ArrayRef' );
 has 'output_filename' => ( is => 'ro', isa => 'Str', lazy => 1, builder => '_build_output_filename' );
-has 'max_gap_between_genes'            => ( is => 'ro', isa => 'Int',     default => 40 );
-has 'min_genes_on_contig'              => ( is => 'ro', isa => 'Int',     default => 2 );
-has '_percentage_to_take_whole_contig' => ( is => 'ro', isa => 'Num',     default => 0.5 );
+has 'max_gap_between_genes'            => ( is => 'ro', isa => 'Int',     default => 20 );
+has 'min_genes_on_contig'              => ( is => 'ro', isa => 'Int',     default => 6 );
+has '_percentage_to_take_whole_contig' => ( is => 'ro', isa => 'Num',     default => 0.7 );
+has 'min_sequence_length'              => ( is => 'ro', isa => 'Int',     default => 5000 ); #Phix 5386
+has 'max_sequence_length'              => ( is => 'ro', isa => 'Int',     default => 1800000 );
 has 'sequence_ids_to_genes'            => ( is => 'ro', isa => 'HashRef', lazy    => 1, builder => '_build_sequence_ids_to_genes' );
 has '_blocks_to_sequences'             => ( is => 'ro', isa => 'HashRef', lazy    => 1, builder => '_build__blocks_to_sequences' );
 
@@ -61,15 +63,22 @@ sub extract_nuc_sequences_from_blocks {
               if ( $self->genes_to_feature->{ $blocks->[1] }->start < $start_coord );
             $end_coord = $self->genes_to_feature->{ $blocks->[1] }->end if ( $self->genes_to_feature->{ $blocks->[1] }->end > $end_coord );
 
+			my $whole_sequence_used = 0 ;
             # If the block makes up a big percentage of the contig, then just take the whole thing
             if ( ( $end_coord - $start_coord ) / $seq_obj->length > $self->_percentage_to_take_whole_contig ) {
                 $start_coord = 1;
                 $end_coord   = $seq_obj->length;
+				$whole_sequence_used =1 ;
             }
+			
+			next if( ($end_coord - $start_coord)  < $self->min_sequence_length);
+			next if( ($end_coord - $start_coord)  > $self->max_sequence_length);
 
             my $sample_name = join( '___', ( $sample_name, $seq_obj->display_id, $start_coord, $end_coord ) );
             $sample_name =~ s!\W!_!gi;
             $out_seq_io->write_seq( Bio::Seq->new( -display_id => $sample_name, -seq => $seq_obj->subseq( $start_coord, $end_coord ) ) );
+			
+			last if($whole_sequence_used == 1);
         }
 
     }
