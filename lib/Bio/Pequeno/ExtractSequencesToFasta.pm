@@ -26,7 +26,9 @@ sub _build_output_filename {
 sub extract_sequence_ids_to_file {
     my ($self) = @_;
     return undef unless ( defined( $self->sequence_ids ) );
-
+	my @sequence_names = keys %{$self->sequence_ids};
+	return undef if(@sequence_names == 0 );
+	
     my $out_seq_io = Bio::SeqIO->new( -file => ">" . $self->output_filename, -format => 'Fasta' );
     my $seq_io     = Bio::SeqIO->new( -file => $self->fasta_file,            -format => 'Fasta' );
     while ( my $input_seq = $seq_io->next_seq() ) {

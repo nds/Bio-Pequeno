@@ -22,7 +22,7 @@ has 'output_filename' => ( is => 'ro', isa => 'Str', lazy => 1, builder => '_bui
 has 'max_gap_between_genes'            => ( is => 'ro', isa => 'Int',     default => 20 );
 has 'min_genes_on_contig'              => ( is => 'ro', isa => 'Int',     default => 5 );
 has '_percentage_to_take_whole_contig' => ( is => 'ro', isa => 'Num',     default => 0.7 );
-has 'min_sequence_length'              => ( is => 'ro', isa => 'Int',     default => 5000 ); #Phix 5386
+has 'min_sequence_length'              => ( is => 'ro', isa => 'Int',     default => 3000 ); #Phix 5386
 has 'max_sequence_length'              => ( is => 'ro', isa => 'Int',     default => 1800000 );
 has 'sequence_ids_to_genes'            => ( is => 'ro', isa => 'HashRef', lazy    => 1, builder => '_build_sequence_ids_to_genes' );
 has '_blocks_to_sequences'             => ( is => 'ro', isa => 'HashRef', lazy    => 1, builder => '_build__blocks_to_sequences' );
